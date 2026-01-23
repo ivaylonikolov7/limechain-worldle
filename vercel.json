@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/limedle",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/limedle/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/limedle/(.*)",
+      "destination": "/$1"
+    }
+  ]
+}

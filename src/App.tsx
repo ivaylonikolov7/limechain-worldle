@@ -60,7 +60,7 @@ function App() {
       setGameOver(true)
       // Update stats when game ends (only once per game)
       if (!statsUpdated) {
-        updateStats(guess.isCorrect, newGuesses.length)
+        updateStats(guess.isCorrect)
         setStatsUpdated(true)
         
         // Track guess across all users

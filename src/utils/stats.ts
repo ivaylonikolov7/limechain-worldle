@@ -35,7 +35,7 @@ export function saveStats(stats: GameStats): void {
   }
 }
 
-export function updateStats(isWin: boolean, guessesUsed: number): GameStats {
+export function updateStats(isWin: boolean): GameStats {
   const stats = getStats()
   const today = new Date().toISOString().split('T')[0]
   

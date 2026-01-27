@@ -156,7 +156,7 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
                 className={`grid-cell pop-in ${feedback.listensToChalga.isCorrect ? 'correct' : 'incorrect'}`}
                 style={{ animationDelay: `${index * 0.1 + 0.25}s` }}
               >
-                {feedback.listensToChalga.value}
+                {feedback.listensToChalga.isCorrect ? '✓' : '✗'}
               </div>
             </React.Fragment>
           )

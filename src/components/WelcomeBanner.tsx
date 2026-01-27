@@ -43,7 +43,7 @@ export function WelcomeBanner({ onDismiss }: WelcomeBannerProps) {
       </h2>
       <div style={{ fontSize: '0.95rem', lineHeight: '1.6' }}>
         <p style={{ marginBottom: '1rem' }}>
-          Познайте дневното лаймче! Имате <strong>6 опита</strong> да разберете кой е.
+          Познайте днешното Лаймче! Имате <strong>6 опита</strong> да разберете кой е.
         </p>
         <div style={{ marginBottom: '1rem' }}>
           <p style={{ marginBottom: '0.5rem' }}><strong>1.</strong> Въведете име на служител в полето за търсене</p>
@@ -56,7 +56,7 @@ export function WelcomeBanner({ onDismiss }: WelcomeBannerProps) {
             <li>Роля</li>
             <li>Преди него/нея ли е в компанията</li>
             <li>Пол</li>
-            <li>Първта буква от името му дали е преди или след тази на днешното лаймче</li>
+            <li>Първта буква от името му дали е преди или след тази на днешното Лаймче</li>
           </ul>
           <p style={{ marginBottom: '0.5rem' }}>
             <strong>3.</strong> <span style={{ color: '#4CF3AF' }}>Зелено</span> означава, че атрибутът съвпада

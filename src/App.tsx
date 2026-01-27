@@ -205,7 +205,7 @@ function App() {
               className="header-logo"
             />
             <div className="header-text">
-              <h1>Познай днешното лаймче!</h1>
+              <h1>Познай днешното Лаймче!</h1>
             </div>
           </div>
         </div>
@@ -254,7 +254,7 @@ function App() {
         />
 
         <p className="info italic ">
-          Всеки ден се избира ново лаймче на произволен принцип.
+          Всеки ден се избира ново Лаймче на произволен принцип.
         </p>
       </div>
 

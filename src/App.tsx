@@ -175,31 +175,20 @@ function App() {
               <span>Incorrect</span>
             </div>
             <div className="legend-item">
-              <div style={{ 
-                width: '20px', 
-                height: '20px', 
-                backgroundColor: 'rgb(59, 130, 246)', 
-                borderRadius: '4px',
-                display: 'inline-block',
-                marginRight: '8px'
-              }}></div>
-              <span>Blue gradient: lighter = closer, darker = further</span>
-            </div>
-            <div className="legend-item">
               <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↑</span>
-              <span>guess started before today's employee</span>
-            </div>
-            <div className="legend-item">
-              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
               <span>guess started after today's employee</span>
             </div>
             <div className="legend-item">
+              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
+              <span>guess started before today's employee</span>
+            </div>
+            <div className="legend-item">
               <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↑</span>
-              <span>letter comes after today's employee</span>
+              <span>letter comes before today's employee</span>
             </div>
             <div className="legend-item">
               <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
-              <span>letter comes before today's employee</span>
+              <span>letter comes after today's employee</span>
             </div>
             <div className="legend-item">
               <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>✓</span>

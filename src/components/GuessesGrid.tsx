@@ -86,7 +86,7 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
         <div className="grid-cell header-cell">Роля</div>
         <div className="grid-cell header-cell">Пол</div>
         <div className="grid-cell header-cell">Първа буква</div>
-        <div className="grid-cell header-cell">Преди/след</div>
+        <div className="grid-cell header-cell">Employee #</div>
         <div className="grid-cell header-cell">#chalga ?</div>
         {guesses.map((guess, index) => {
           const feedback = compareAttributes(guess.user, dailyUser)
@@ -117,25 +117,7 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
               <div 
                 className={`grid-cell pop-in ${feedback.firstLetter.isCorrect ? 'correct' : 'incorrect'}`}
                 style={{ 
-                  animationDelay: `${index * 0.1 + 0.15}s`,
-                  backgroundColor: feedback.firstLetter.isCorrect 
-                    ? undefined // Use green from 'correct' class when exact match
-                    : (() => {
-                        const guessInitial = getFirstNameInitial(guess.user.name)
-                        const targetInitial = getFirstNameInitial(dailyUser.name)
-                        const guessCode = guessInitial.charCodeAt(0)
-                        const targetCode = targetInitial.charCodeAt(0)
-                        const distance = Math.abs(guessCode - targetCode)
-                        // Max distance is 25 (A to Z)
-                        const maxDistance = 25
-                        const normalizedDistance = Math.min(distance / maxDistance, 1)
-                        // Create gradient from light blue to deep blue
-                        // Closer = lighter, further = darker
-                        const r = Math.floor(59 + (30 - 59) * normalizedDistance)
-                        const g = Math.floor(130 + (58 - 130) * normalizedDistance)
-                        const b = Math.floor(246 + (138 - 246) * normalizedDistance)
-                        return `rgb(${r}, ${g}, ${b})`
-                      })()
+                  animationDelay: `${index * 0.1 + 0.15}s`
                 }}
               >
                 {!feedback.firstLetter.isCorrect && feedback.firstLetter.direction !== null ? (
@@ -150,31 +132,10 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
                 className={`grid-cell pop-in ${(() => {
                   const guessIndex = getEmployeeIndex(guess.user)
                   const targetIndex = getEmployeeIndex(dailyUser)
-                  return guessIndex === targetIndex ? 'correct' : ''
+                  return guessIndex === targetIndex ? 'correct' : 'incorrect'
                 })()}`}
                 style={{ 
                   animationDelay: `${index * 0.1 + 0.2}s`,
-                  backgroundColor: (() => {
-                    const guessIndex = getEmployeeIndex(guess.user)
-                    const targetIndex = getEmployeeIndex(dailyUser)
-                    
-                    // If exact match, return undefined to use green from 'correct' class
-                    if (guessIndex === targetIndex) {
-                      return undefined
-                    }
-                    
-                    const distance = Math.abs(guessIndex - targetIndex)
-                    const allUsers = getAllUsers()
-                    const maxDistance = allUsers.length - 1
-                    // Normalize distance to 0-1 range
-                    const normalizedDistance = Math.min(distance / maxDistance, 1)
-                    // Create gradient from light blue to deep blue
-                    // Closer = lighter, further = darker
-                    const r = Math.floor(59 + (30 - 59) * normalizedDistance)
-                    const g = Math.floor(130 + (58 - 130) * normalizedDistance)
-                    const b = Math.floor(246 + (138 - 246) * normalizedDistance)
-                    return `rgb(${r}, ${g}, ${b})`
-                  })(),
                   color: '#000000'
                 }}
               >

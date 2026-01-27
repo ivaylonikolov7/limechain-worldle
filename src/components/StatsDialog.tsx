@@ -5,6 +5,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { getStats, getWinRate, type GameStats } from '../utils/stats'
+import { getGlobalStats, type GlobalStats } from '../utils/guessTracking.firestore'
 import { useState, useEffect } from 'react'
 
 interface StatsDialogProps {
@@ -14,10 +15,18 @@ interface StatsDialogProps {
 
 export function StatsDialog({ open, onOpenChange }: StatsDialogProps) {
   const [stats, setStats] = useState<GameStats>(getStats())
+  const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (open) {
       setStats(getStats())
+      // Fetch global stats
+      setLoading(true)
+      getGlobalStats()
+        .then(setGlobalStats)
+        .catch(console.error)
+        .finally(() => setLoading(false))
     }
   }, [open])
 
@@ -111,12 +120,39 @@ export function StatsDialog({ open, onOpenChange }: StatsDialogProps) {
             color: '#9ca3af',
             fontSize: '0.875rem'
           }}>
+            <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#4CF3AF' }}>
+              Your Stats
+            </div>
             <div style={{ marginBottom: '0.5rem' }}>
               Games Won: <strong style={{ color: '#ffffff' }}>{stats.gamesWon}</strong>
             </div>
-            <div>
+            <div style={{ marginBottom: '1.5rem' }}>
               Games Lost: <strong style={{ color: '#ffffff' }}>{stats.totalGames - stats.gamesWon}</strong>
             </div>
+            
+            {loading ? (
+              <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Loading global stats...</div>
+            ) : globalStats ? (
+              <>
+                <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#4CF3AF' }}>
+                  Global Stats (All Players)
+                </div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  Total Games: <strong style={{ color: '#ffffff' }}>{globalStats.totalGuesses}</strong>
+                </div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  Games Won: <strong style={{ color: '#ffffff' }}>{globalStats.totalWins}</strong>
+                </div>
+                <div style={{ marginBottom: '0.5rem' }}>
+                  Games Lost: <strong style={{ color: '#ffffff' }}>{globalStats.totalLosses}</strong>
+                </div>
+                <div>
+                  Win Rate: <strong style={{ color: '#ffffff' }}>{globalStats.winRate}%</strong>
+                </div>
+              </>
+            ) : (
+              <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Unable to load global stats</div>
+            )}
           </div>
         </div>
       </DialogContent>

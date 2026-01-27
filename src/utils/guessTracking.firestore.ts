@@ -107,3 +107,59 @@ export async function getGuessPercentage(date: string): Promise<number> {
   
   return Math.round((stats.guessed / stats.total) * 100)
 }
+
+/**
+ * Get global stats across all guesses (all time)
+ */
+export interface GlobalStats {
+  totalGuesses: number
+  totalWins: number
+  totalLosses: number
+  winRate: number
+}
+
+export async function getGlobalStats(): Promise<GlobalStats> {
+  try {
+    const q = query(collection(db, 'guesses'))
+    const querySnapshot = await getDocs(q)
+    
+    if (querySnapshot.empty) {
+      return {
+        totalGuesses: 0,
+        totalWins: 0,
+        totalLosses: 0,
+        winRate: 0
+      }
+    }
+    
+    let totalWins = 0
+    let totalLosses = 0
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      if (data.guessed === true) {
+        totalWins++
+      } else {
+        totalLosses++
+      }
+    })
+    
+    const totalGuesses = totalWins + totalLosses
+    const winRate = totalGuesses > 0 ? Math.round((totalWins / totalGuesses) * 100) : 0
+    
+    return {
+      totalGuesses,
+      totalWins,
+      totalLosses,
+      winRate
+    }
+  } catch (error) {
+    console.error('Error getting global stats:', error)
+    return {
+      totalGuesses: 0,
+      totalWins: 0,
+      totalLosses: 0,
+      winRate: 0
+    }
+  }
+}

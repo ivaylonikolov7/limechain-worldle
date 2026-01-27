@@ -52,9 +52,6 @@ export function ResultSection({ isCorrect, dailyUser, open, onOpenChange }: Resu
           <h2>{dailyUser.displayName || dailyUser.name}</h2>
           <p className="user-name">{dailyUser.name}</p>
           <p className="user-role">Role: {dailyUser.role}</p>
-          <p className="user-chalga">
-            Listens to Chalga: {dailyUser['listens-to-chalga'] ? 'Yes' : 'No'}
-          </p>
           <p className="user-before-me">
             Before me in company: {dailyUser['before-me-in-company'] ? 'Yes' : 'No'}
           </p>

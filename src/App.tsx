@@ -8,6 +8,7 @@ import { RulesDialog } from './components/RulesDialog'
 import { AuthorDialog } from './components/AuthorDialog'
 import { HintDialog } from './components/HintDialog'
 import { StatsDialog } from './components/StatsDialog'
+import { WelcomeBanner } from './components/WelcomeBanner'
 import { updateStats } from './utils/stats'
 import { trackGuess } from './utils/guessTracking.firestore'
 import './App.css'
@@ -39,9 +40,31 @@ function App() {
   const [hintShown, setHintShown] = useState(false)
   const [statsOpen, setStatsOpen] = useState(false)
   const [statsUpdated, setStatsUpdated] = useState(false)
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
+  const [legendCollapsed, setLegendCollapsed] = useState(false)
 
   const remainingGuesses = 6 - guesses.length
   const canGuess = remainingGuesses > 0 && !isCorrect && !gameOver
+
+  // Check if this is the user's first visit and mark as visited
+  useEffect(() => {
+    try {
+      const hasVisited = localStorage.getItem('lime-wordle-has-visited')
+      if (!hasVisited || hasVisited !== 'true') {
+        // First visit - show banner and immediately mark as visited
+        setShowWelcomeBanner(true)
+        localStorage.setItem('lime-wordle-has-visited', 'true')
+      }
+    } catch (error) {
+      console.error('Error accessing localStorage:', error)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Empty dependency array - only run once on mount
+
+  // Handle dismissing the banner (just hides it, flag already set)
+  const handleDismissBanner = () => {
+    setShowWelcomeBanner(false)
+  }
 
   const handleGuess = (user: UserType | undefined) => {
     if (!user || !canGuess) return
@@ -121,6 +144,70 @@ function App() {
             <User size={24} />
           </button>
         </div>
+        
+        <div className="color-legend">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: legendCollapsed ? '0' : '0.75rem' }}>
+            <div className="legend-title" style={{ marginBottom: 0 }}>Color indicators</div>
+            <button
+              onClick={() => setLegendCollapsed(!legendCollapsed)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#4CF3AF',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                padding: '0.25rem 0.5rem',
+                lineHeight: '1'
+              }}
+              aria-label={legendCollapsed ? 'Expand legend' : 'Collapse legend'}
+            >
+              {legendCollapsed ? '▼' : '▲'}
+            </button>
+          </div>
+          {!legendCollapsed && (
+          <div className="legend-items">
+            <div className="legend-item">
+              <div className="legend-color correct"></div>
+              <span>Correct</span>
+            </div>
+            <div className="legend-item">
+              <div className="legend-color incorrect"></div>
+              <span>Incorrect</span>
+            </div>
+            <div className="legend-item">
+              <div style={{ 
+                width: '20px', 
+                height: '20px', 
+                backgroundColor: 'rgb(59, 130, 246)', 
+                borderRadius: '4px',
+                display: 'inline-block',
+                marginRight: '8px'
+              }}></div>
+              <span>Blue gradient: lighter = closer, darker = further</span>
+            </div>
+            <div className="legend-item">
+              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↑</span>
+              <span>guess started before today's employee</span>
+            </div>
+            <div className="legend-item">
+              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
+              <span>guess started after today's employee</span>
+            </div>
+            <div className="legend-item">
+              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↑</span>
+              <span>letter comes after today's employee</span>
+            </div>
+            <div className="legend-item">
+              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
+              <span>letter comes before today's employee</span>
+            </div>
+            <div className="legend-item">
+              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>✓</span>
+              <span>letter matches exactly</span>
+            </div>
+          </div>
+          )}
+        </div>
         <div className="game-header">
           <div className="header-content">
             <img 
@@ -133,6 +220,10 @@ function App() {
             </div>
           </div>
         </div>
+
+        {showWelcomeBanner && (
+          <WelcomeBanner onDismiss={handleDismissBanner} />
+        )}
 
         {!gameOver && !isCorrect && (
           <div className="guess-input-section">
@@ -172,20 +263,6 @@ function App() {
             }
           }}
         />
-
-        <div className="color-legend">
-          <div className="legend-title">Color indicators</div>
-          <div className="legend-items">
-            <div className="legend-item">
-              <div className="legend-color correct"></div>
-              <span>Correct</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color incorrect"></div>
-              <span>Incorrect</span>
-            </div>
-          </div>
-        </div>
 
         <p className="info italic ">
           Всеки ден се избира ново лаймче на произволен принцип.

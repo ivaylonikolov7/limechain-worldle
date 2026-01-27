@@ -16,6 +16,7 @@ body{
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  position: relative;
 }
 
 .header-buttons {
@@ -323,7 +324,7 @@ body{
 
 .color-legend {
   position: fixed;
-  bottom: 2rem;
+  top: 2rem;
   right: 2rem;
   background: rgba(29, 37, 47, 0.9);
   border: 1px solid #4CF3AF;
@@ -333,6 +334,7 @@ body{
   box-shadow: 0 4px 20px rgba(76, 243, 175, 0.3);
   color: #4CF3AF;
   font-size: 0.85rem;
+  z-index: 10;
 }
 
 .legend-title {

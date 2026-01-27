@@ -17,7 +17,6 @@ export function RulesContent() {
             <p>After each guess, you'll see feedback comparing attributes:</p>
             <ul className="attributes-list">
               <li>Role</li>
-              <li>Listens to Chalga</li>
               <li>Before me in company</li>
               <li>Gender</li>
               <li>First letter of name</li>

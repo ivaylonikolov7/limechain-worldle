@@ -1,5 +1,5 @@
 /**
- * Firebase Configuration for Firestore
+ * Firebase Configuration for Firestore and Auth
  * 
  * 1. Copy this file to firebase.ts
  * 2. Replace the values with your Firebase config (from Firebase Console > Project Settings)
@@ -8,6 +8,7 @@
 
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
+import { getAuth } from 'firebase/auth'
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -20,3 +21,4 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig)
 export const db = getFirestore(app)
+export const auth = getAuth(app)

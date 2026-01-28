@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
+import type { User as FirebaseUser } from 'firebase/auth'
 import { 
-  User as FirebaseUser,
   signInWithPopup,
   GoogleAuthProvider,
   signOut,

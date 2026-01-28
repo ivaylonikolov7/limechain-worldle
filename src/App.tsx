@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
-import { HelpCircle, User, BarChart3 } from 'lucide-react'
+import { HelpCircle, User, BarChart3, LogOut } from 'lucide-react'
 import { getDailyUser, getAllUsers, type User as UserType } from './utils/dailyUser'
 import { Combobox } from '@/components/ui/combobox'
 import { GuessesGrid } from './components/GuessesGrid'
@@ -9,6 +9,8 @@ import { AuthorDialog } from './components/AuthorDialog'
 import { HintDialog } from './components/HintDialog'
 import { StatsDialog } from './components/StatsDialog'
 import { WelcomeBanner } from './components/WelcomeBanner'
+import { LoginScreen } from './components/LoginScreen'
+import { useAuth } from './contexts/AuthContext'
 import { updateStats } from './utils/stats'
 import { trackGuess } from './utils/guessTracking.firestore'
 import './App.css'
@@ -28,6 +30,7 @@ function shuffleArray<T>(array: T[]): T[] {
 }
 
 function App() {
+  const { user, loading, isAuthorized, logout } = useAuth()
   const dailyUser = useMemo(() => getDailyUser(), [])
   const allUsers = useMemo(() => getAllUsers(), [])
   const [selectedUser, setSelectedUser] = useState<UserType | undefined>(undefined)
@@ -115,6 +118,27 @@ function App() {
     return shuffleArray(filtered)
   }, [allUsers, guesses])
 
+  // Show loading state while checking auth
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: '#1D252F',
+        color: '#4CF3AF'
+      }}>
+        Зареждане...
+      </div>
+    )
+  }
+
+  // Show login screen if not authorized
+  if (!isAuthorized) {
+    return <LoginScreen />
+  }
+
   return (
     <>
       <div className="container">
@@ -142,6 +166,14 @@ function App() {
             aria-label="Author"
           >
             <User size={24} />
+          </button>
+          <button 
+            className="header-button"
+            onClick={logout}
+            aria-label="Logout"
+            title={`Logged in as ${user?.email}`}
+          >
+            <LogOut size={24} />
           </button>
         </div>
         

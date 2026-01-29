@@ -4,8 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import { getStats, getWinRate, type GameStats } from '../utils/stats'
-import { getGlobalStats, type GlobalStats } from '../utils/guessTracking.firestore'
+import { getGlobalStats, getTodayStats, type GlobalStats, type TodayStats } from '../utils/guessTracking.firestore'
 import { useState, useEffect } from 'react'
 
 interface StatsDialogProps {
@@ -14,23 +13,28 @@ interface StatsDialogProps {
 }
 
 export function StatsDialog({ open, onOpenChange }: StatsDialogProps) {
-  const [stats, setStats] = useState<GameStats>(getStats())
   const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null)
+  const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     if (open) {
-      setStats(getStats())
-      // Fetch global stats
+      // Fetch global stats and today's stats
       setLoading(true)
-      getGlobalStats()
-        .then(setGlobalStats)
+      const today = new Date().toISOString().split('T')[0]
+      
+      Promise.all([
+        getGlobalStats(),
+        getTodayStats(today)
+      ])
+        .then(([global, today]) => {
+          setGlobalStats(global)
+          setTodayStats(today)
+        })
         .catch(console.error)
         .finally(() => setLoading(false))
     }
   }, [open])
-
-  const winRate = getWinRate(stats)
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,106 +58,73 @@ export function StatsDialog({ open, onOpenChange }: StatsDialogProps) {
           </DialogTitle>
         </DialogHeader>
         <div className="stats-content" style={{ padding: '1rem 0' }}>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(2, 1fr)', 
-            gap: '1.5rem',
-            marginBottom: '1.5rem'
-          }}>
-            <div style={{ textAlign: 'center' }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', color: '#9ca3af', fontSize: '0.875rem', padding: '2rem 0' }}>
+              Loading stats...
+            </div>
+          ) : (
+            <>
+              {/* Today's Stats */}
               <div style={{ 
-                fontSize: '2rem', 
-                fontWeight: 'bold', 
-                color: '#4CF3AF',
-                marginBottom: '0.25rem'
+                textAlign: 'center', 
+                paddingBottom: '1.5rem',
+                borderBottom: '1px solid #374151',
+                marginBottom: '1.5rem'
               }}>
-                {stats.totalGames}
+                <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#4CF3AF', fontSize: '1.1rem' }}>
+                  Today's Stats
+                </div>
+                {todayStats ? (
+                  <>
+                    <div style={{ marginBottom: '0.75rem', color: '#9ca3af', fontSize: '0.875rem' }}>
+                      Users Guessed: <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{todayStats.totalUsers ?? 0}</strong>
+                    </div>
+                    <div style={{ marginBottom: '0.75rem', color: '#9ca3af', fontSize: '0.875rem' }}>
+                      Win Rate: <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{(todayStats.winRate ?? 0)}%</strong>
+                    </div>
+                    <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>
+                      Avg Guess (Wins): <strong style={{ color: '#ffffff', fontSize: '1rem' }}>
+                        {todayStats.averageGuessNumber > 0 ? todayStats.averageGuessNumber : 'N/A'}
+                      </strong>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>No data for today</div>
+                )}
               </div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                Games Played
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
+
+              {/* Global Stats */}
               <div style={{ 
-                fontSize: '2rem', 
-                fontWeight: 'bold', 
-                color: '#4CF3AF',
-                marginBottom: '0.25rem'
+                textAlign: 'center', 
+                color: '#9ca3af',
+                fontSize: '0.875rem'
               }}>
-                {winRate}%
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                Win Rate
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                fontSize: '2rem', 
-                fontWeight: 'bold', 
-                color: '#4CF3AF',
-                marginBottom: '0.25rem'
-              }}>
-                {stats.currentStreak}
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                Current Streak
-              </div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ 
-                fontSize: '2rem', 
-                fontWeight: 'bold', 
-                color: '#4CF3AF',
-                marginBottom: '0.25rem'
-              }}>
-                {stats.bestStreak}
-              </div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af' }}>
-                Best Streak
-              </div>
-            </div>
-          </div>
-          <div style={{ 
-            textAlign: 'center', 
-            paddingTop: '1rem',
-            borderTop: '1px solid #374151',
-            color: '#9ca3af',
-            fontSize: '0.875rem'
-          }}>
-            <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#4CF3AF' }}>
-              Your Stats
-            </div>
-            <div style={{ marginBottom: '0.5rem' }}>
-              Games Won: <strong style={{ color: '#ffffff' }}>{stats.gamesWon}</strong>
-            </div>
-            <div style={{ marginBottom: '1.5rem' }}>
-              Games Lost: <strong style={{ color: '#ffffff' }}>{stats.totalGames - stats.gamesWon}</strong>
-            </div>
-            
-            {loading ? (
-              <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Loading global stats...</div>
-            ) : globalStats ? (
-              <>
-                <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#4CF3AF' }}>
-                  Global Stats (All Players)
+                <div style={{ marginBottom: '1rem', fontWeight: 'bold', color: '#4CF3AF', fontSize: '1.1rem' }}>
+                  Global Stats (All Time)
                 </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  Total Games: <strong style={{ color: '#ffffff' }}>{globalStats.totalGuesses}</strong>
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  Games Won: <strong style={{ color: '#ffffff' }}>{globalStats.totalWins}</strong>
-                </div>
-                <div style={{ marginBottom: '0.5rem' }}>
-                  Games Lost: <strong style={{ color: '#ffffff' }}>{globalStats.totalLosses}</strong>
-                </div>
-                <div>
-                  Win Rate: <strong style={{ color: '#ffffff' }}>{globalStats.winRate}%</strong>
-                </div>
-              </>
-            ) : (
-              <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Unable to load global stats</div>
-            )}
-          </div>
+                {globalStats ? (
+                  <>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      Total Games: <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{globalStats.totalGuesses}</strong>
+                    </div>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      Games Won: <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{globalStats.totalWins}</strong>
+                    </div>
+                    <div style={{ marginBottom: '0.75rem' }}>
+                      Games Lost: <strong style={{ color: '#ffffff', fontSize: '1rem' }}>{globalStats.totalLosses}</strong>
+                    </div>
+                    <div>
+                      Avg Guess (Wins): <strong style={{ color: '#ffffff', fontSize: '1rem' }}>
+                        {globalStats.averageGuessNumber > 0 ? globalStats.averageGuessNumber : 'N/A'}
+                      </strong>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ color: '#9ca3af', fontSize: '0.875rem' }}>Unable to load global stats</div>
+                )}
+              </div>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>

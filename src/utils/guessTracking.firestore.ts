@@ -12,7 +12,9 @@
 
 import { 
   collection, 
-  addDoc, 
+  setDoc,
+  doc,
+  getDoc,
   query, 
   where, 
   getDocs,
@@ -33,20 +35,52 @@ export interface DailyStats {
 }
 
 /**
+ * Encode email to be safe for use in document IDs
+ * Replaces @ with _at_ and . with _dot_
+ */
+function encodeEmailForDocId(email: string): string {
+  return email.replace(/@/g, '_at_').replace(/\./g, '_dot_')
+}
+
+/**
  * Track a single guess result
+ * Uses emailDate as the document ID to ensure uniqueness
  */
 export async function trackGuess(
   date: string, // YYYY-MM-DD format
-  isCorrect: boolean
+  isCorrect: boolean,
+  email: string, // Authenticated user's email (from Firebase Auth)
+  guessNumber: number // Which guess number (1-6) the user was on
 ): Promise<void> {
   try {
-    await addDoc(collection(db, 'guesses'), {
+    console.log('Attempting to track guess:', { date, isCorrect, email, guessNumber })
+    
+    // Create unique emailDate: email_date (e.g., "ivnikolov721_at_gmail_dot_com_2026-08-26")
+    // Encode email to make it safe for document ID
+    const encodedEmail = encodeEmailForDocId(email)
+    const emailDate = `${encodedEmail}_${date}`
+    
+    // Check if document already exists (using document ID)
+    const docRef = doc(db, 'guesses', emailDate)
+    const docSnapshot = await getDoc(docRef)
+    
+    if (docSnapshot.exists()) {
+      throw new Error('User has already guessed today')
+    }
+    
+    // Use setDoc with emailDate as document ID to ensure uniqueness
+    await setDoc(docRef, {
       guessed: isCorrect,
       timestamp: Timestamp.now(),
-      date: date // Store date for easy querying
+      date: date, // Store date for easy querying
+      email: email, // Store authenticated user's email
+      guessNumber: guessNumber, // Store which guess number (1-6)
+      emailDate: emailDate // Also store as field for querying
     })
+    console.log('Guess tracked successfully with document ID:', emailDate)
   } catch (error) {
     console.error('Error tracking guess:', error)
+    throw error // Re-throw to allow caller to handle
   }
 }
 
@@ -109,13 +143,33 @@ export async function getGuessPercentage(date: string): Promise<number> {
 }
 
 /**
+ * Check if a user has already guessed today
+ * Uses the emailDate as document ID for efficient checking
+ */
+export async function hasUserGuessedToday(email: string, date: string): Promise<boolean> {
+  try {
+    // Encode email the same way as in trackGuess
+    const encodedEmail = encodeEmailForDocId(email)
+    const emailDate = `${encodedEmail}_${date}`
+    
+    // Check if document exists by ID
+    const docRef = doc(db, 'guesses', emailDate)
+    const docSnapshot = await getDoc(docRef)
+    return docSnapshot.exists()
+  } catch (error) {
+    console.error('Error checking if user has guessed today:', error)
+    return false // If there's an error, allow them to play (fail open)
+  }
+}
+
+/**
  * Get global stats across all guesses (all time)
  */
 export interface GlobalStats {
   totalGuesses: number
   totalWins: number
   totalLosses: number
-  winRate: number
+  averageGuessNumber: number // Average guess number for wins (1-6)
 }
 
 export async function getGlobalStats(): Promise<GlobalStats> {
@@ -128,30 +182,41 @@ export async function getGlobalStats(): Promise<GlobalStats> {
         totalGuesses: 0,
         totalWins: 0,
         totalLosses: 0,
-        winRate: 0
+        averageGuessNumber: 0
       }
     }
     
     let totalWins = 0
     let totalLosses = 0
+    let totalGuessNumbers = 0 // Sum of guess numbers for wins only
     
     querySnapshot.forEach((doc) => {
       const data = doc.data()
-      if (data.guessed === true) {
+      // Check both boolean true and string "true" for compatibility
+      const guessedValue = data.guessed
+      const isGuessed = guessedValue === true || guessedValue === 'true' || guessedValue === 1
+      
+      if (isGuessed) {
         totalWins++
+        // Only count guess numbers for wins
+        if (data.guessNumber && typeof data.guessNumber === 'number') {
+          totalGuessNumbers += data.guessNumber
+        }
       } else {
         totalLosses++
       }
     })
     
     const totalGuesses = totalWins + totalLosses
-    const winRate = totalGuesses > 0 ? Math.round((totalWins / totalGuesses) * 100) : 0
+    const averageGuessNumber = totalWins > 0 
+      ? Math.round((totalGuessNumbers / totalWins) * 10) / 10 // Round to 1 decimal place
+      : 0
     
     return {
       totalGuesses,
       totalWins,
       totalLosses,
-      winRate
+      averageGuessNumber
     }
   } catch (error) {
     console.error('Error getting global stats:', error)
@@ -159,6 +224,90 @@ export async function getGlobalStats(): Promise<GlobalStats> {
       totalGuesses: 0,
       totalWins: 0,
       totalLosses: 0,
+      averageGuessNumber: 0
+    }
+  }
+}
+
+/**
+ * Get today's stats
+ */
+export interface TodayStats {
+  totalUsers: number // How many users have guessed today
+  averageGuessNumber: number // Average guess number for today (only for wins)
+  winRate: number // Win rate percentage for today
+}
+
+export async function getTodayStats(date: string): Promise<TodayStats> {
+  try {
+    const q = query(
+      collection(db, 'guesses'),
+      where('date', '==', date)
+    )
+    const querySnapshot = await getDocs(q)
+    
+    if (querySnapshot.empty) {
+      return {
+        totalUsers: 0,
+        averageGuessNumber: 0,
+        winRate: 0
+      }
+    }
+    
+    let totalUsers = 0
+    let totalGuessNumbers = 0 // Sum of guess numbers for wins only
+    let winsCount = 0
+    let lossesCount = 0
+    
+    querySnapshot.forEach((doc) => {
+      const data = doc.data()
+      totalUsers++
+      
+      // Count wins and losses
+      // Check both boolean true and string "true" for compatibility
+      // Firestore may return booleans in different formats
+      const guessedValue = data.guessed
+      const isGuessed = guessedValue === true || guessedValue === 'true' || guessedValue === 1
+      
+      if (isGuessed) {
+        winsCount++
+        // Only count guess numbers for wins
+        if (data.guessNumber && typeof data.guessNumber === 'number') {
+          totalGuessNumbers += data.guessNumber
+        }
+      } else {
+        lossesCount++
+      }
+    })
+    
+    const averageGuessNumber = winsCount > 0 
+      ? Math.round((totalGuessNumbers / winsCount) * 10) / 10 // Round to 1 decimal place
+      : 0
+    
+    const winRate = totalUsers > 0 
+      ? Math.round((winsCount / totalUsers) * 100) 
+      : 0
+    
+    // Debug logging
+    console.log('Today stats calculation:', {
+      totalUsers,
+      winsCount,
+      lossesCount,
+      winRate,
+      date,
+      sampleData: querySnapshot.docs.length > 0 ? querySnapshot.docs[0].data() : null
+    })
+    
+    return {
+      totalUsers,
+      averageGuessNumber,
+      winRate
+    }
+  } catch (error) {
+    console.error('Error getting today stats:', error)
+    return {
+      totalUsers: 0,
+      averageGuessNumber: 0,
       winRate: 0
     }
   }

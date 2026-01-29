@@ -1,54 +1,21 @@
 import { useMemo, useState, useEffect } from 'react'
-import { HelpCircle, User, BarChart3, LogOut } from 'lucide-react'
-import { getDailyUser, getAllUsers, type User as UserType } from './utils/dailyUser'
+import { HeaderButtons } from './components/HeaderButtons'
+import { getDailyUser } from './utils/dailyUser'
 import logo from './assets/logo.png'
-import { Combobox } from '@/components/ui/combobox'
-import { GuessesGrid } from './components/GuessesGrid'
-import { ResultSection } from './components/ResultSection'
-import { RulesDialog } from './components/RulesDialog'
-import { AuthorDialog } from './components/AuthorDialog'
-import { HintDialog } from './components/HintDialog'
-import { StatsDialog } from './components/StatsDialog'
+import { Game } from './components/Game'
 import { WelcomeBanner } from './components/WelcomeBanner'
 import { LoginScreen } from './components/LoginScreen'
 import { useAuth } from './contexts/AuthContext'
-import { updateStats } from './utils/stats'
-import { trackGuess } from './utils/guessTracking.firestore'
+import { hasUserGuessedToday } from './utils/guessTracking.firestore'
+import { hasPlayedTodayFromCookie } from './utils/cookies'
 import './App.css'
 
-interface Guess {
-  user: UserType
-  isCorrect: boolean
-}
-
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array]
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
-}
-
 function App() {
-  const { user, loading, isAuthorized, logout } = useAuth()
+  const { user: authUser, loading, isAuthorized, logout } = useAuth()
   const dailyUser = useMemo(() => getDailyUser(), [])
-  const allUsers = useMemo(() => getAllUsers(), [])
-  const [selectedUser, setSelectedUser] = useState<UserType | undefined>(undefined)
-  const [authorOpen, setAuthorOpen] = useState(false)
-  const [guesses, setGuesses] = useState<Guess[]>([])
-  const [isCorrect, setIsCorrect] = useState(false)
-  const [gameOver, setGameOver] = useState(false)
-  const [rulesOpen, setRulesOpen] = useState(false)
-  const [hintOpen, setHintOpen] = useState(false)
-  const [hintShown, setHintShown] = useState(false)
-  const [statsOpen, setStatsOpen] = useState(false)
-  const [statsUpdated, setStatsUpdated] = useState(false)
   const [showWelcomeBanner, setShowWelcomeBanner] = useState(false)
-  const [legendCollapsed, setLegendCollapsed] = useState(false)
-
-  const remainingGuesses = 6 - guesses.length
-  const canGuess = remainingGuesses > 0 && !isCorrect && !gameOver
+  const [hasPlayedToday, setHasPlayedToday] = useState(false)
+  const [checkingPlayedToday, setCheckingPlayedToday] = useState(true)
 
   // Check if this is the user's first visit and mark as visited
   useEffect(() => {
@@ -65,59 +32,48 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []) // Empty dependency array - only run once on mount
 
+  // Check if user has already played today
+  useEffect(() => {
+    const checkIfPlayedToday = async () => {
+      setCheckingPlayedToday(true)
+      
+      // Check both cookie and Firestore
+      const hasPlayedCookie = hasPlayedTodayFromCookie()
+      
+      // Check Firestore (for authenticated users) - this is the source of truth
+      let hasPlayedFirestore = false
+      if (authUser?.email) {
+        const today = new Date().toISOString().split('T')[0]
+        hasPlayedFirestore = await hasUserGuessedToday(authUser.email, today)
+      }
+      
+      // User has played if either cookie or Firestore says so
+      // Firestore is the source of truth, but cookie provides fast initial check
+      const hasPlayed = hasPlayedCookie || hasPlayedFirestore
+      setHasPlayedToday(hasPlayed)
+      
+      // If Firestore says they played but cookie doesn't, set the cookie
+      if (hasPlayedFirestore && !hasPlayedCookie) {
+        const { setPlayedTodayCookie } = await import('./utils/cookies')
+        setPlayedTodayCookie()
+      }
+      
+      setCheckingPlayedToday(false)
+    }
+    
+    checkIfPlayedToday()
+  }, [authUser?.email, dailyUser.name, dailyUser.displayName])
+
   // Handle dismissing the banner (just hides it, flag already set)
   const handleDismissBanner = () => {
     setShowWelcomeBanner(false)
   }
 
-  const handleGuess = (user: UserType | undefined) => {
-    if (!user || !canGuess) return
-    
-    const guess: Guess = {
-      user,
-      isCorrect: user.name === dailyUser.name && user.displayName === dailyUser.displayName
-    }
-    
-    const newGuesses = [...guesses, guess]
-    setGuesses(newGuesses)
-    setSelectedUser(undefined)
-    setIsCorrect(guess.isCorrect)
-    
-    if (guess.isCorrect || newGuesses.length >= 6) {
-      setGameOver(true)
-      // Update stats when game ends (only once per game)
-      if (!statsUpdated) {
-        updateStats(guess.isCorrect)
-        setStatsUpdated(true)
-        
-        // Track guess across all users
-        const today = new Date().toISOString().split('T')[0]
-        trackGuess(today, guess.isCorrect).catch(console.error)
-      }
-    }
-    
-    // Show hint after 4th guess if not correct and hint hasn't been shown
-    if (newGuesses.length === 4 && !guess.isCorrect && !hintShown) {
-      setHintOpen(true)
-      setHintShown(true)
-    }
-  }
-
-  // Reset game state when daily user changes (new day)
+  // Reset hasPlayedToday when daily user changes (new day)
   useEffect(() => {
-    setGuesses([])
-    setIsCorrect(false)
-    setGameOver(false)
-    setHintShown(false)
-    setStatsUpdated(false)
+    setHasPlayedToday(false)
   }, [dailyUser.name, dailyUser.displayName])
 
-  // Filter out already guessed users and shuffle
-  const availableUsers = useMemo(() => {
-    const guessedNames = new Set(guesses.map(g => `${g.user.name}|${g.user.displayName}`))
-    const filtered = allUsers.filter(user => !guessedNames.has(`${user.name}|${user.displayName}`))
-    return shuffleArray(filtered)
-  }, [allUsers, guesses])
 
   // Show loading state while checking auth
   if (loading) {
@@ -143,81 +99,6 @@ function App() {
   return (
     <>
       <div className="container">
-        <div className="header-buttons">
-          <button 
-            className="header-button"
-            onClick={() => setRulesOpen(true)}
-            aria-label="How to Play"
-          >
-            <HelpCircle size={24} />
-          </button>
-          <button 
-            className="header-button"
-            onClick={() => setStatsOpen(true)}
-            aria-label="Statistics"
-          >
-            <BarChart3 size={24} />
-          </button>
-          <button 
-            className="header-button"
-            onClick={() => {
-              console.log('Author button clicked, opening dialog')
-              setAuthorOpen(true)
-            }}
-            aria-label="Author"
-          >
-            <User size={24} />
-          </button>
-          <button 
-            className="header-button"
-            onClick={logout}
-            aria-label="Logout"
-            title={`Logged in as ${user?.email}`}
-          >
-            <LogOut size={24} />
-          </button>
-        </div>
-        <div style={{
-          width: '100%',
-          height: '1px',
-          backgroundColor: '#4CF3AF',
-          opacity: 0.3,
-          marginTop: '1rem',
-          marginBottom: '2rem'
-        }}></div>
-        
-        <div className="color-legend">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: legendCollapsed ? '0' : '0.75rem' }}>
-            <div className="legend-title" style={{ marginBottom: 0 }}>Color indicators</div>
-            <button
-              onClick={() => setLegendCollapsed(!legendCollapsed)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#4CF3AF',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                padding: '0.25rem 0.5rem',
-                lineHeight: '1'
-              }}
-              aria-label={legendCollapsed ? 'Expand legend' : 'Collapse legend'}
-            >
-              {legendCollapsed ? '▼' : '▲'}
-            </button>
-          </div>
-          {!legendCollapsed && (
-          <div className="legend-items">
-            <div className="legend-item">
-              <div className="legend-color correct"></div>
-              <span>Correct</span>
-            </div>
-            <div className="legend-item">
-              <div className="legend-color incorrect"></div>
-              <span>Incorrect</span>
-            </div>
-          </div>
-          )}
-        </div>
         <div className="game-header">
           <div className="header-content">
             <img 
@@ -228,13 +109,14 @@ function App() {
             />
             <p style={{ 
               color: '#4CF3AF', 
-              fontSize: '1.2rem', 
-              marginTop: '0.5rem',
+              fontSize: '1.5rem', 
+              marginTop: '1rem',
               textAlign: 'center',
-              fontWeight: '500',
-              marginBottom: 0
+              fontWeight: '600',
+              marginBottom: 0,
+              fontFamily: "'Poppins', 'Montserrat', sans-serif"
             }}>
-              Guess today's Lime employee
+              Limedle
             </p>
           </div>
         </div>
@@ -243,69 +125,22 @@ function App() {
           <WelcomeBanner onDismiss={handleDismissBanner} />
         )}
 
-        {!gameOver && !isCorrect && (
-          <div className="guess-input-section">
-            <div className="combobox-container">
-              <Combobox
-                items={availableUsers}
-                value={selectedUser}
-                onValueChange={handleGuess}
-                placeholder="Type employee name..."
-                searchPlaceholder="Search employees..."
-                emptyText="No employees found."
-                getItemLabel={(user) => user.name}
-                getItemValue={(user) => `${user.name}|${user.displayName}`}
-                disabled={remainingGuesses === 0 || guesses.length >= 6}
-              />
-            </div>
-            {guesses.length > 0 && (
-              <p className="guesses-remaining" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <span>още {remainingGuesses} шанса</span>
-                <img 
-                  src="https://cdn.frankerfacez.com/emoticon/730208/animated/2" 
-                  alt=""
-                  style={{ width: '24px', height: '24px', display: 'block' }}
-                />
-              </p>
-            )}
-          </div>
-        )}
-
-        <GuessesGrid guesses={guesses} dailyUser={dailyUser} />
-
-        <ResultSection 
-          isCorrect={isCorrect} 
-          dailyUser={dailyUser} 
-          open={gameOver}
-          onOpenChange={(open) => {
-            if (!open) {
-              setGameOver(false)
-            }
-          }}
+        <Game
+          dailyUser={dailyUser}
+          authUserEmail={authUser?.email}
+          hasPlayedToday={hasPlayedToday}
+          checkingPlayedToday={checkingPlayedToday}
         />
 
         <p className="info italic ">
           Всеки ден се избира ново Лаймче на произволен принцип.
         </p>
-      </div>
 
-      <RulesDialog 
-        open={rulesOpen} 
-        onOpenChange={setRulesOpen}
-      />
-      <AuthorDialog 
-        open={authorOpen} 
-        onOpenChange={setAuthorOpen}
-      />
-      <HintDialog 
-        dailyUser={dailyUser}
-        open={hintOpen} 
-        onOpenChange={setHintOpen}
-      />
-      <StatsDialog 
-        open={statsOpen} 
-        onOpenChange={setStatsOpen}
-      />
+        <HeaderButtons
+          onLogout={logout}
+          userEmail={authUser?.email}
+        />
+      </div>
     </>
   )
 }

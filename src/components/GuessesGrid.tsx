@@ -18,6 +18,7 @@ interface AttributeFeedback {
 interface GuessesGridProps {
   guesses: Guess[]
   dailyUser: User
+  guessesCount: number
 }
 
 function getFirstNameInitial(name: string): string {
@@ -76,7 +77,7 @@ function compareAttributes(guess: User, target: User): Record<string, AttributeF
   }
 }
 
-export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
+export function GuessesGrid({ guesses, dailyUser, guessesCount }: GuessesGridProps) {
   if (guesses.length === 0) {
     return null
   }
@@ -240,12 +241,21 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
                 className={`grid-cell pop-in ${feedback.listensToChalga.isCorrect ? 'correct' : 'incorrect'}`}
                 style={{ animationDelay: `${index * 0.1 + 0.25}s` }}
               >
-                {feedback.listensToChalga.value} {feedback.listensToChalga.isCorrect && feedback.listensToChalga.value === 'да' ? '✓' : feedback.listensToChalga.isCorrect ? '' : '✗'}
+                {feedback.listensToChalga.value}
               </div>
             </React.Fragment>
           )
         })}
       </div>
+      {guessesCount > 0 && (
+        <p className="guesses-remaining" style={{ 
+          marginTop: '1rem', 
+          marginBottom: 0,
+          textAlign: 'center'
+        }}>
+          <span>Guesses: {guessesCount}/6</span>
+        </p>
+      )}
     </div>
   )
 }

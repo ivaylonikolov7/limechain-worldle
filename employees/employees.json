@@ -142,7 +142,7 @@
     {
       "name": "georgi",
       "displayName": "georgi",
-      "role": "Developer",
+      "role": "Engineer",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://secure.gravatar.com/avatar/d8d15d3b87f5d3c5d7dcd8e0094c6f2f.jpg?s=72&d=https%3A%2F%2Fa.slack-edge.com%2Fdf10d%2Fimg%2Favatars%2Fava_0020-72.png",
@@ -292,7 +292,7 @@
     {
       "name": "Ivo Stoynovski",
       "displayName": "Ivo",
-      "role": "Developer",
+      "role": "Engineer",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2025-03-31/8680690171701_5dd329fa31e7695e1f0d_72.jpg",
@@ -416,7 +416,7 @@
     {
       "name": "Tugay Emin",
       "displayName": "Tuga",
-      "role": "Developer",
+      "role": "Engineer",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2022-07-06/3759421409510_901ebb4df866ebd5b65d_72.jpg",
@@ -450,7 +450,7 @@
     {
       "name": "Anton Rusev",
       "displayName": "Anton Rusev",
-      "role": "Developer",
+      "role": "Engineer",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2023-07-21/5617378140963_ff206583ad509540f737_72.jpg",

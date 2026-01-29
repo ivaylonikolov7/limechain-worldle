@@ -58,7 +58,7 @@ function compareAttributes(guess: User, target: User): Record<string, AttributeF
       isCorrect: guess['listens-to-chalga'] === target['listens-to-chalga']
     },
     gender: {
-      value: guess.gender,
+      value: guess.gender === 'лаймче' ? 'мъж' : guess.gender === 'лаймка' ? 'жена' : guess.gender,
       isCorrect: guess.gender === target.gender
     },
     firstLetter: {

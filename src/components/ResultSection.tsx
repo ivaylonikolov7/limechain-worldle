@@ -78,7 +78,7 @@ export function ResultSection({ isCorrect, dailyUser, open, onOpenChange }: Resu
             <div>{dailyUser.role}</div>
             
             <div style={{ color: '#4CF3AF', fontWeight: '600' }}>Пол:</div>
-            <div>{dailyUser.gender}</div>
+            <div>{dailyUser.gender === 'лаймче' ? 'мъж' : dailyUser.gender === 'лаймка' ? 'жена' : dailyUser.gender}</div>
             
             <div style={{ color: '#4CF3AF', fontWeight: '600' }}>Първа буква:</div>
             <div>{firstLetter}</div>

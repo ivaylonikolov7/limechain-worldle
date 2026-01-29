@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { type User } from '../utils/dailyUser'
 import {
   Dialog,

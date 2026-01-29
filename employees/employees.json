@@ -188,7 +188,7 @@
     {
       "name": "Dimitar Ivanov",
       "displayName": "Dimitar Ivanov",
-      "role": "DM",
+      "role": "Head",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2022-07-15/3817810704881_4211826896bad7f95d02_72.jpg",
@@ -427,7 +427,7 @@
     {
       "name": "Ivan Danchev",
       "displayName": "ivan.danchev",
-      "role": "HR",
+      "role": "Admin",
       "listens-to-chalga": true,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2022-01-14/2953393789571_32e932e1049e8521a200_72.png",
@@ -540,7 +540,7 @@
     {
       "name": "Mariyana Stoyanova",
       "displayName": "Mariyana",
-      "role": "HR",
+      "role": "Admin",
       "listens-to-chalga": true,
       "gender": "лаймка",
       "imageUrl": "https://avatars.slack-edge.com/2022-07-07/3793075979920_709b35203ec090595b77_72.png",
@@ -865,7 +865,7 @@
     {
       "name": "Nikola Stanimirov",
       "displayName": "Nikola Stanimirov",
-      "role": "Product Manager",
+      "role": "PM",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2024-03-22/6830870230455_28d64afa000087d4e3c6_72.png",
@@ -878,7 +878,7 @@
       "displayName": "Iliana",
       "role": "Finances",
       "listens-to-chalga": true,
-      "gender": "лаймче",
+      "gender": "лаймка",
       "imageUrl": "https://avatars.slack-edge.com/2025-04-28/8840524139312_429ef1eb9874888e1ea3_72.png",
       "image72": "https://avatars.slack-edge.com/2025-04-28/8840524139312_429ef1eb9874888e1ea3_72.png",
       "image192": "https://avatars.slack-edge.com/2025-04-28/8840524139312_429ef1eb9874888e1ea3_192.png",
@@ -1023,7 +1023,7 @@
     {
       "name": "Gabriela Ivanova",
       "displayName": "Gabriela Ivanova",
-      "role": "HR",
+      "role": "Admin",
       "listens-to-chalga": true,
       "gender": "лаймка",
       "imageUrl": "https://avatars.slack-edge.com/2024-08-12/7583855389984_a9318cb1ef1591d3a81b_72.jpg",
@@ -1192,7 +1192,7 @@
     {
       "name": "Andrey Georgiev",
       "displayName": "Andrey Georgiev",
-      "role": "Developer",
+      "role": "Engineer",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2024-11-18/8029849466599_87e2475a79facfdb8eae_72.png",
@@ -1526,7 +1526,7 @@
     {
       "name": "Antoni Fidosiev",
       "displayName": "Antoni Fidosiev",
-      "role": "UI/UX Designer",
+      "role": "DevOps",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2025-06-23/9101486976497_0d96df508b1818ac3d97_72.jpg",
@@ -1680,7 +1680,7 @@
     {
       "name": "Trayan Chernev",
       "displayName": "Trayan Chernev",
-      "role": "Engineer",
+      "role": "Admin",
       "listens-to-chalga": false,
       "gender": "лаймче",
       "imageUrl": "https://avatars.slack-edge.com/2026-01-21/10336509314085_41aa361ce0eadd81495c_72.jpg",

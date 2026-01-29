@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react'
 import { HelpCircle, User, BarChart3, LogOut } from 'lucide-react'
 import { getDailyUser, getAllUsers, type User as UserType } from './utils/dailyUser'
+import logo from './assets/logo.png'
 import { Combobox } from '@/components/ui/combobox'
 import { GuessesGrid } from './components/GuessesGrid'
 import { ResultSection } from './components/ResultSection'
@@ -176,6 +177,14 @@ function App() {
             <LogOut size={24} />
           </button>
         </div>
+        <div style={{
+          width: '100%',
+          height: '1px',
+          backgroundColor: '#4CF3AF',
+          opacity: 0.3,
+          marginTop: '1rem',
+          marginBottom: '2rem'
+        }}></div>
         
         <div className="color-legend">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: legendCollapsed ? '0' : '0.75rem' }}>
@@ -206,39 +215,27 @@ function App() {
               <div className="legend-color incorrect"></div>
               <span>Incorrect</span>
             </div>
-            <div className="legend-item">
-              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↑</span>
-              <span>guess started after today's employee</span>
-            </div>
-            <div className="legend-item">
-              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
-              <span>guess started before today's employee</span>
-            </div>
-            <div className="legend-item">
-              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↑</span>
-              <span>letter comes before today's employee</span>
-            </div>
-            <div className="legend-item">
-              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>↓</span>
-              <span>letter comes after today's employee</span>
-            </div>
-            <div className="legend-item">
-              <span style={{ fontSize: '1.2rem', marginRight: '8px' }}>✓</span>
-              <span>letter matches exactly</span>
-            </div>
           </div>
           )}
         </div>
         <div className="game-header">
           <div className="header-content">
             <img 
-              src="https://sofia.businessrun.bg/wp-content/uploads/2023/04/limechain.png" 
+              src={logo} 
               alt="LimeChain Logo" 
               className="header-logo"
+              style={{ border: 'none', outline: 'none' }}
             />
-            <div className="header-text">
-              <h1>Познай днешното Лаймче!</h1>
-            </div>
+            <p style={{ 
+              color: '#4CF3AF', 
+              fontSize: '1.2rem', 
+              marginTop: '0.5rem',
+              textAlign: 'center',
+              fontWeight: '500',
+              marginBottom: 0
+            }}>
+              Guess today's Lime employee
+            </p>
           </div>
         </div>
 
@@ -261,14 +258,16 @@ function App() {
                 disabled={remainingGuesses === 0 || guesses.length >= 6}
               />
             </div>
-            <p className="guesses-remaining" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span>още {remainingGuesses} шанса</span>
-              <img 
-                src="https://cdn.frankerfacez.com/emoticon/730208/animated/2" 
-                alt=""
-                style={{ width: '24px', height: '24px', display: 'block' }}
-              />
-            </p>
+            {guesses.length > 0 && (
+              <p className="guesses-remaining" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span>още {remainingGuesses} шанса</span>
+                <img 
+                  src="https://cdn.frankerfacez.com/emoticon/730208/animated/2" 
+                  alt=""
+                  style={{ width: '24px', height: '24px', display: 'block' }}
+                />
+              </p>
+            )}
           </div>
         )}
 

@@ -1,5 +1,7 @@
 import React from 'react'
 import { type User, getAllUsers } from '../utils/dailyUser'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { FaInfoCircle } from 'react-icons/fa'
 
 interface Guess {
   user: User
@@ -9,7 +11,7 @@ interface Guess {
 interface AttributeFeedback {
   value: string
   isCorrect: boolean
-  direction?: 'up' | 'down' | null // For first letter and before-me-in-company comparison
+  direction?: 'up' | 'down' | 'left' | 'right' | null // For first letter and before-me-in-company comparison
   imageUrl?: string // For Yes/No image replacements
 }
 
@@ -52,7 +54,7 @@ function compareAttributes(guess: User, target: User): Record<string, AttributeF
       direction: guessStartedBeforeTarget ? 'down' : 'up' // Down arrow if started before (earlier row), up if started after (later row)
     },
     listensToChalga: {
-      value: guess['listens-to-chalga'] ? 'слуша' : 'не слуша',
+      value: guess['listens-to-chalga'] ? 'да' : 'не',
       isCorrect: guess['listens-to-chalga'] === target['listens-to-chalga']
     },
     gender: {
@@ -66,9 +68,9 @@ function compareAttributes(guess: User, target: User): Record<string, AttributeF
         const guessInitial = getFirstNameInitial(guess.name)
         const targetInitial = getFirstNameInitial(target.name)
         if (guessInitial === targetInitial) return null
-        // If target (daily employee) comes before guess alphabetically, show up arrow
-        // If target comes after guess, show down arrow
-        return targetInitial < guessInitial ? 'up' : 'down'
+        // If target (daily employee) comes before guess alphabetically, show left arrow
+        // If target comes after guess, show right arrow
+        return targetInitial < guessInitial ? 'left' : 'right'
       })()
     }
   }
@@ -86,8 +88,88 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
         <div className="grid-cell header-cell">Роля</div>
         <div className="grid-cell header-cell">Пол</div>
         <div className="grid-cell header-cell">Първа буква</div>
-        <div className="grid-cell header-cell">Employee #</div>
-        <div className="grid-cell header-cell">#chalga ?</div>
+        <div className="grid-cell header-cell" style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+          Employee #
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#4CF3AF',
+                  fontSize: '14px'
+                }}
+                aria-label="Information about Employee #"
+              >
+                <FaInfoCircle size={14} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              style={{
+                backgroundColor: '#1D252F',
+                borderColor: '#4CF3AF',
+                color: '#ffffff',
+                maxWidth: '300px',
+                padding: '12px'
+              }}
+            >
+              <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
+                <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#4CF3AF' }}>
+                  Employee #
+                </p>
+                <p style={{ margin: 0 }}>
+                  The arrow indicates whether the daily employee started before (←) or after (→) the guessed employee.
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="grid-cell header-cell" style={{ display: 'flex', alignItems: 'center', gap: '6px', justifyContent: 'center' }}>
+          #chalga ?
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: '2px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  color: '#4CF3AF',
+                  fontSize: '14px'
+                }}
+                aria-label="Information about #chalga"
+              >
+                <FaInfoCircle size={14} />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              style={{
+                backgroundColor: '#1D252F',
+                borderColor: '#4CF3AF',
+                color: '#ffffff',
+                maxWidth: '300px',
+                padding: '12px'
+              }}
+            >
+              <div style={{ fontSize: '14px', lineHeight: '1.5' }}>
+                <p style={{ margin: '0 0 8px 0', fontWeight: 'bold', color: '#4CF3AF' }}>
+                  #chalga ?
+                </p>
+                <p style={{ margin: 0 }}>
+                  This employee is part of the #chalga channel.
+                </p>
+              </div>
+            </PopoverContent>
+          </Popover>
+        </div>
         {guesses.map((guess, index) => {
           const feedback = compareAttributes(guess.user, dailyUser)
           return (
@@ -122,7 +204,7 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
               >
                 {!feedback.firstLetter.isCorrect && feedback.firstLetter.direction !== null ? (
                   <span className="direction-arrow">
-                    {feedback.firstLetter.direction === 'up' ? '↑' : '↓'}
+                    {feedback.firstLetter.direction === 'left' ? '←' : '→'}
                   </span>
                 ) : feedback.firstLetter.isCorrect ? (
                   '✓'
@@ -135,8 +217,7 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
                   return guessIndex === targetIndex ? 'correct' : 'incorrect'
                 })()}`}
                 style={{ 
-                  animationDelay: `${index * 0.1 + 0.2}s`,
-                  color: '#000000'
+                  animationDelay: `${index * 0.1 + 0.2}s`
                 }}
               >
                 {(() => {
@@ -148,15 +229,18 @@ export function GuessesGrid({ guesses, dailyUser }: GuessesGridProps) {
                     return '✓'
                   }
                   
-                  const arrow = feedback.beforeMeInCompany.direction === 'up' ? '↑' : '↓'
-                  return `${guessIndex + 1} ${arrow}`
+                  // Left arrow if target comes before guess (lower index), right arrow if target comes after guess (higher index)
+                  const arrow = guessIndex < targetIndex ? '→' : '←'
+                  return (
+                    <span className="direction-arrow">{arrow}</span>
+                  )
                 })()}
               </div>
               <div 
                 className={`grid-cell pop-in ${feedback.listensToChalga.isCorrect ? 'correct' : 'incorrect'}`}
                 style={{ animationDelay: `${index * 0.1 + 0.25}s` }}
               >
-                {feedback.listensToChalga.isCorrect ? '✓' : '✗'}
+                {feedback.listensToChalga.value} {feedback.listensToChalga.isCorrect && feedback.listensToChalga.value === 'да' ? '✓' : feedback.listensToChalga.isCorrect ? '' : '✗'}
               </div>
             </React.Fragment>
           )

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Button } from '@/components/ui/button'
+import logo from '../assets/logo.png'
 
 export function LoginScreen() {
   const { signInWithGoogle } = useAuth()
@@ -39,7 +40,7 @@ export function LoginScreen() {
         boxShadow: '0 4px 20px rgba(76, 243, 175, 0.2)'
       }}>
         <img 
-          src="https://sofia.businessrun.bg/wp-content/uploads/2023/04/limechain.png" 
+          src={logo} 
           alt="LimeChain Logo" 
           style={{ height: '80px', width: 'auto', marginBottom: '2rem' }}
         />
